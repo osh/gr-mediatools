@@ -5,8 +5,7 @@ import mediatools;
 sys.path.append(".");
 
 # Construct playlist
-pl = mediatools.strvec(["data/kahvi161b_esem-dispehrse.ogg","data/kahvi161b_esem-dispehrse.ogg"]);
-#pl =["data/kahvi161b_esem-dispehrse.ogg","data/kahvi161b_esem-dispehrse.ogg"];
+pl = mediatools.strvec(["1.mp3","2.ogg"]);
 
 # Setup sample rates
 dac_sample_rate = 44100;
