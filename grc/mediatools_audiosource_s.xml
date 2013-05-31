@@ -8,8 +8,8 @@
   <param>
     <name>Audio File List</name>
     <key>args</key>
-    <type>string</type>
-    <value>["/tmp/foo.mp3"]
+    <value>["/tmp/foo.mp3"]</value>
+    <type>raw</type>
   </param>
 
   <source>
