@@ -56,7 +56,12 @@ set(Boost_ADDITIONAL_VERSIONS
     "1.60.0" "1.60" "1.61.0" "1.61" "1.62.0" "1.62" "1.63.0" "1.63" "1.64.0" "1.64"
     "1.65.0" "1.65" "1.66.0" "1.66" "1.67.0" "1.67" "1.68.0" "1.68" "1.69.0" "1.69"
 )
-find_package(Boost "1.35")
+set(BOOST_ROOT ${CMAKE_INSTALL_PREFIX})
+set(BOOST_REQUIRED_COMPONENTS
+    system
+    unit_test_framework
+)
+find_package(Boost "1.42")
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost required to compile mediatools")
@@ -82,15 +87,11 @@ set(GRC_BLOCKS_DIR      ${GR_PKG_DATA_DIR}/grc/blocks)
 ########################################################################
 # Find gnuradio build dependencies
 ########################################################################
-find_package(Gruel)
-find_package(GnuradioCore)
+set(GR_REQUIRED_COMPONENTS RUNTIME BLOCKS PMT)
+find_package(Gnuradio)
 
-if(NOT GRUEL_FOUND)
-    message(FATAL_ERROR "Gruel required to compile mediatools")
-endif()
-
-if(NOT GNURADIO_CORE_FOUND)
-    message(FATAL_ERROR "GnuRadio Core required to compile mediatools")
+if(NOT GNURADIO_RUNTIME_FOUND)
+    message(FATAL_ERROR "GnuRadio Runtime required to compile mediatools")
 endif()
 
 
@@ -104,16 +105,14 @@ find_package(avutil)
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${Boost_INCLUDE_DIRS}
-    ${GRUEL_INCLUDE_DIRS}
-    ${GNURADIO_CORE_INCLUDE_DIRS}
+    ${GNURADIO_RUNTIME_INCLUDE_DIRS}
     ${AVCODEC_INCLUDE_DIR}
     ${AVFORMAT_INCLUDE_DIR}
 )
 
 link_directories(
     ${Boost_LIBRARY_DIRS}
-    ${GRUEL_LIBRARY_DIRS}
-    ${GNURADIO_CORE_LIBRARY_DIRS}
+    ${GNURADIO_RUNTIME_LIBRARY_DIRS}
 )
 
 # Set component parameters

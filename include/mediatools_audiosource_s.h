@@ -22,7 +22,7 @@
 #define INCLUDED_MEDIATOOLS_AUDIOSOURCE_S_H
 
 #include <mediatools_api.h>
-#include <gr_sync_block.h>
+#include <gnuradio/sync_block.h>
 #include <mediatools_audiosource_impl.h>
 
 class mediatools_audiosource_s;
@@ -34,7 +34,7 @@ MEDIATOOLS_API mediatools_audiosource_s_sptr mediatools_make_audiosource_s (std:
  * \brief <+description+>
  *
  */
-class MEDIATOOLS_API mediatools_audiosource_s : public gr_sync_block
+class MEDIATOOLS_API mediatools_audiosource_s : public gr::sync_block
 {
 	friend MEDIATOOLS_API mediatools_audiosource_s_sptr mediatools_make_audiosource_s (std::vector<std::string> args);
 

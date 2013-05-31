@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#include <gr_io_signature.h>
+#include <gnuradio/io_signature.h>
 #include <mediatools_audiosource_s.h>
 
 
@@ -34,9 +34,9 @@ mediatools_make_audiosource_s (std::vector<std::string> args)
 
 
 mediatools_audiosource_s::mediatools_audiosource_s (std::vector<std::string> args)
-	: gr_sync_block ("audiosource_s",
-		gr_make_io_signature (0, 0, 0),
-		gr_make_io_signature (1,1, sizeof (int16_t))),
+	: gr::sync_block ("audiosource_s",
+		gr::io_signature::make (0, 0, 0),
+		gr::io_signature::make (1,1, sizeof (int16_t))),
     d_list(args)
 {
     d_impl = new mediatools_audiosource_impl();

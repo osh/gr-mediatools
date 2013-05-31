@@ -24,8 +24,8 @@ include(GrPlatform) #define LIB_SUFFIX
 add_library(gnuradio-mediatools SHARED mediatools_audiosource_s.cc mediatools_audiosource_impl.cc)
 target_link_libraries(gnuradio-mediatools 
         ${Boost_LIBRARIES} 
-        ${GRUEL_LIBRARIES} 
-        ${GNURADIO_CORE_LIBRARIES}
+        ${GNURADIO_RUNTIME_LIBRARIES}
+        ${GNURADIO_PMT_LIBRARIES}
         ${AVCODEC_LIBRARY}
         ${AVFORMAT_LIBRARY}
         ${AVUTIL_LIBRARY}
@@ -44,13 +44,12 @@ install(TARGETS gnuradio-mediatools
 ########################################################################
 # Build and register unit test
 ########################################################################
-find_package(Boost COMPONENTS unit_test_framework)
 
 include(GrTest)
 set(GR_TEST_TARGET_DEPS gnuradio-mediatools)
 #turn each test cpp file into an executable with an int main() function
 add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
 
-add_executable(qa_mediatools_audiosource_s qa_mediatools_audiosource_s.cc)
-target_link_libraries(qa_mediatools_audiosource_s gnuradio-mediatools ${Boost_LIBRARIES})
-GR_ADD_TEST(qa_mediatools_audiosource_s qa_mediatools_audiosource_s)
+#add_executable(qa_mediatools_audiosource_s qa_mediatools_audiosource_s.cc)
+#target_link_libraries(qa_mediatools_audiosource_s gnuradio-mediatools ${Boost_LIBRARIES})
+#GR_ADD_TEST(qa_mediatools_audiosource_s qa_mediatools_audiosource_s)

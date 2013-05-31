@@ -3,6 +3,7 @@
 #define MEDIATOOLS_API
 
 %include "gnuradio.i"			// the common stuff
+/*
 %include "typemaps.i"
 %include "std_string.i"
 %include "std_vector.i"
@@ -11,6 +12,7 @@ namespace std
 {
     %template(strvec) vector<string>;
 }
+*/
 
 
 //load generated python docstrings
