@@ -12,9 +12,21 @@
     <type>raw</type>
   </param>
 
+  <sink>
+    <name>enqueue</name>
+    <type>message</type>
+    <optional>1</optional>
+  </sink>
+
   <source>
     <name>out</name>
     <type>short</type>
+  </source>
+
+  <source>
+    <name>change</name>
+    <type>message</type>
+    <optional>1</optional>
   </source>
 
   <doc>

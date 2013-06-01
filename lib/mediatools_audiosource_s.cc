@@ -24,14 +24,14 @@
 
 #include <gnuradio/io_signature.h>
 #include <mediatools_audiosource_s.h>
-
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
 mediatools_audiosource_s_sptr
 mediatools_make_audiosource_s (std::vector<std::string> args)
 {
 	return mediatools_audiosource_s_sptr (new mediatools_audiosource_s (args));
 }
-
 
 mediatools_audiosource_s::mediatools_audiosource_s (std::vector<std::string> args)
 	: gr::sync_block ("audiosource_s",
@@ -40,6 +40,9 @@ mediatools_audiosource_s::mediatools_audiosource_s (std::vector<std::string> arg
     d_list(args)
 {
     d_impl = new mediatools_audiosource_impl();
+    message_port_register_in(pmt::mp("enqueue"));
+    set_msg_handler(pmt::mp("enqueue"), boost::bind(&mediatools_audiosource_s::enqueue_pmt, this, _1));
+    message_port_register_out(pmt::mp("change"));
 }
 
 
@@ -73,9 +76,22 @@ mediatools_audiosource_s::work (int noutput_items,
     d_impl->readData(d_data);
   }
 
+  // generate stream tags with media metadata
+  typedef std::map<std::string,std::string>::value_type metaitemtype;
   if(!d_impl->d_meta.empty()){
-    
+    d_impl->d_meta["queued_remain"] = (boost::format("%d") % (d_list.size())).str();
+    BOOST_FOREACH( const metaitemtype &item, d_impl->d_meta )
+    {
+        gr::tag_t t;
+        t.key = pmt::mp((boost::format("audiosource_%s")%item.first).str());
+        t.value = pmt::mp(item.second);
+        t.srcid = pmt::mp(alias());
+        t.offset = nitems_written(0);
+        add_item_tag(0, t);
+    }
     d_impl->d_meta.clear();
+    pmt::pmt_t msg = pmt::mp((int)d_list.size());
+    message_port_pub(pmt::mp("change"), msg);
     }
 
   // copy data to our output buffer
