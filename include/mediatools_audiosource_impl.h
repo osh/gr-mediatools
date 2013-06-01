@@ -25,7 +25,6 @@ class mediatools_audiosource_impl {
 
         mediatools_audiosource_impl();
         bool open(std::string);
-        bool open_mpeg();
         void readData(std::vector<int16_t> &r);
     
         AVFormatContext* d_format_ctx;

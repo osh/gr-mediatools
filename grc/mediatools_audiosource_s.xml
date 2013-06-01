@@ -17,6 +17,12 @@
     <type>message</type>
     <optional>1</optional>
   </sink>
+  
+  <sink>
+    <name>skip</name>
+    <type>message</type>
+    <optional>1</optional>
+  </sink>
 
   <source>
     <name>out</name>

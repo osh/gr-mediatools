@@ -37,11 +37,13 @@ mediatools_audiosource_s::mediatools_audiosource_s (std::vector<std::string> arg
 	: gr::sync_block ("audiosource_s",
 		gr::io_signature::make (0, 0, 0),
 		gr::io_signature::make (1,1, sizeof (int16_t))),
-    d_list(args)
+    d_list(args), d_skip(false)
 {
     d_impl = new mediatools_audiosource_impl();
     message_port_register_in(pmt::mp("enqueue"));
+    message_port_register_in(pmt::mp("skip"));
     set_msg_handler(pmt::mp("enqueue"), boost::bind(&mediatools_audiosource_s::enqueue_pmt, this, _1));
+    set_msg_handler(pmt::mp("skip"), boost::bind(&mediatools_audiosource_s::skip_pmt, this, _1));
     message_port_register_out(pmt::mp("change"));
 }
 
@@ -50,6 +52,7 @@ mediatools_audiosource_s::~mediatools_audiosource_s ()
 {
 }
 
+#define EXIT_ON_LIST_END    false
 
 int
 mediatools_audiosource_s::work (int noutput_items,
@@ -57,6 +60,10 @@ mediatools_audiosource_s::work (int noutput_items,
 			gr_vector_void_star &output_items)
 {
 	int16_t *out = (int16_t *) output_items[0];
+    if(d_skip){
+        d_impl->d_ready = false;
+        d_skip = false;
+        }
 
     // make sure we have enough data to output
     while(d_data.size() < noutput_items){
@@ -64,9 +71,15 @@ mediatools_audiosource_s::work (int noutput_items,
         while(d_impl->d_ready == false){
             // exit when we run out of files
             if(d_list.size()<1){
-                printf("reached end of pl\n");
-                // possibly branch to an idle state here to dump 0's instead of exiting?
-                return -1;
+                if(EXIT_ON_LIST_END){
+                    // exit angrily
+                    printf("reached end of pl\n");
+                    return -1;
+                } else {
+                    // generate silence
+                    memset(out, 0x00, noutput_items*sizeof(int16_t));
+                    return noutput_items;
+                }
             }
         d_impl->open(d_list[0]);
         d_list.erase(d_list.begin(), d_list.begin()+1);

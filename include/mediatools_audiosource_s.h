@@ -44,16 +44,24 @@ class MEDIATOOLS_API mediatools_audiosource_s : public gr::sync_block
 
     std::vector<std::string> d_list;
     std::vector<int16_t> d_data;
+    bool d_skip;
 
     void enqueue_pmt(pmt::pmt_t file){
         if(pmt::is_symbol(file))
             enqueue(pmt::symbol_to_string(file));
+        }
+    void skip_pmt(pmt::pmt_t _){
+        skip();
         }
 
  public:
 	~mediatools_audiosource_s ();
     void enqueue(std::string file){
         d_list.push_back(file);
+        }
+    void skip(){
+        d_skip = true;
+        d_data.clear();
         }
 	int work (int noutput_items,
 		gr_vector_const_void_star &input_items,

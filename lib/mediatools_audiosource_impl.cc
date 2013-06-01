@@ -1,10 +1,13 @@
 #include <mediatools_audiosource_impl.h>
 #include <string.h>
 #include <assert.h>
+#include <boost/thread.hpp>
 
 // switch to enable debugging output
 //#define DEBUG(x)    x
 #define DEBUG(x)    
+
+static boost::mutex avcodec_guard;
 
 mediatools_audiosource_impl::mediatools_audiosource_impl(){
     d_ready = false;
@@ -16,6 +19,7 @@ mediatools_audiosource_impl::mediatools_audiosource_impl(){
 }
 
 bool mediatools_audiosource_impl::open(std::string filename){
+    boost::mutex::scoped_lock lock(avcodec_guard);
 
     // close & free old contexts
     if(d_frame != NULL){ av_free(d_frame); d_frame=NULL; }
@@ -105,9 +109,6 @@ void mediatools_audiosource_impl::readData(std::vector<int16_t> &r){
     int samples_out = data_size/sizeof(short);
     std::copy( x, x+samples_out, back_inserter(r) );
     return;
-}
-
-bool mediatools_audiosource_impl::open_mpeg(){
 }
 
 
