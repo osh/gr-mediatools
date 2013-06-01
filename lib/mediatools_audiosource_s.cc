@@ -53,28 +53,34 @@ mediatools_audiosource_s::work (int noutput_items,
 			gr_vector_const_void_star &input_items,
 			gr_vector_void_star &output_items)
 {
-	const int16_t *in = (const int16_t *) input_items[0];
 	int16_t *out = (int16_t *) output_items[0];
 
-	// Do <+signal processing+>
+    // make sure we have enough data to output
     while(d_data.size() < noutput_items){
-    // make sure we have a file open
+        // keep trying to open files until we are ready
         while(d_impl->d_ready == false){
+            // exit when we run out of files
             if(d_list.size()<1){
                 printf("reached end of pl\n");
                 // possibly branch to an idle state here to dump 0's instead of exiting?
-                return 0;
+                return -1;
             }
         d_impl->open(d_list[0]);
         d_list.erase(d_list.begin(), d_list.begin()+1);
     }
 
-    // grab new data and output
+    // decode more data
     d_impl->readData(d_data);
   }
 
+  if(!d_impl->d_meta.empty()){
     
-	// Tell runtime system how many output items we produced.
-	return noutput_items;
+    d_impl->d_meta.clear();
+    }
+
+  // copy data to our output buffer
+  memcpy(out, &d_data[0], noutput_items*sizeof(int16_t));
+  d_data.erase(d_data.begin(), d_data.begin()+noutput_items);
+  return noutput_items;
 }
 

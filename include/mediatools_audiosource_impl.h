@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -32,4 +33,6 @@ class mediatools_audiosource_impl {
         AVCodec *d_codec;
         AVFrame *d_frame;
         AVPacket d_packet;
+
+        std::map<std::string, std::string> d_meta;
 };

@@ -8,16 +8,12 @@
 
 mediatools_audiosource_impl::mediatools_audiosource_impl(){
     d_ready = false;
-    
-    avcodec_init();
-    av_register_all();   
-
+    d_codec = NULL;
     d_frame = NULL;
     d_codec_ctx = NULL;
     d_format_ctx = NULL;
-
+    av_register_all();   
 }
-
 
 bool mediatools_audiosource_impl::open(std::string filename){
 
@@ -27,13 +23,13 @@ bool mediatools_audiosource_impl::open(std::string filename){
     if(d_format_ctx != NULL){ av_free(d_format_ctx); d_format_ctx = NULL; }
 
     d_filename = filename;
-
-    int rc = av_open_input_file(&d_format_ctx, filename.c_str(), NULL, 0, NULL);
+    d_format_ctx = avformat_alloc_context(); // should be automatic
+    int rc = avformat_open_input(&d_format_ctx, d_filename.c_str(), NULL, NULL);
     DEBUG(printf("filename = %s\n", filename.c_str());)
-    if(rc<0){ DEBUG(printf("could not open file.\n");) return false; }
+    if(rc<0){ printf("could not open file %s\n",filename.c_str()); return false; }
+    //dump_format(d_format_ctx, 0, filename.c_str(), 0);
 
-    DEBUG(dump_format(d_format_ctx, 0, filename.c_str(), 0);)
-
+    // make sure we have audio
     bool have_audio = false;
     for(int stream_idx = 0; stream_idx < d_format_ctx->nb_streams; stream_idx++){
         DEBUG(printf("Stream: %d\n", stream_idx);)
@@ -43,62 +39,71 @@ bool mediatools_audiosource_impl::open(std::string filename){
             break;
             }
     }
-
     if(!have_audio){
         DEBUG(printf("no audio stream found in file\n");)
         return false;
     }
     
+    // allocate the right codec
     d_codec = avcodec_find_decoder(d_codec_ctx->codec_id);
     DEBUG(printf("using codec: %s\n", d_codec->name);)
-    rc = avcodec_open(d_codec_ctx, d_codec);
+    rc = avcodec_open2(d_codec_ctx, d_codec, NULL);
     if(rc<0){
         DEBUG(printf("could not open codec: %d\n",rc);)
         assert(0);
         }
-    d_frame = avcodec_alloc_frame();
+
+    // get metadata - store it for the block
+    AVDictionaryEntry *tag = NULL;
+    while ((tag = av_dict_get(d_format_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))){
+        //printf("%s=%s\n", tag->key, tag->value);
+        d_meta[tag->key] = tag->value;
+    }
+
  
+    // open the file for reading
+//    d_file = fopen(d_filename.c_str(), "rb");
+
     DEBUG(printf("file open and ready\n");)
     d_ready = true;
     return true;
      
 }
 
-
 void mediatools_audiosource_impl::readData(std::vector<int16_t> &r){
-    uint8_t audio_buf[(AVCODEC_MAX_AUDIO_FRAME_SIZE * 3)/2] __attribute__ ((aligned (16)));;
-    int audio_buf_size = 0;
-    int audio_buf_index = 0;
-    int data_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE*4);
+    // set up packet
+    av_init_packet(&d_packet);
+    int rf = av_read_frame(d_format_ctx, &d_packet);
+    if(rf != 0){ d_ready = false; return; } // end of file ?
+    // ensure output frame is allocated
+    if(!d_frame)
+        d_frame = avcodec_alloc_frame();
 
-    int rc = av_read_frame(d_format_ctx, &d_packet);
-    
-    // make sure we can read another frame
-    if(rc < 0){
-        // otherwise move on from this file
+    // decode the frame
+    int got_frame = 0;
+    int rc = avcodec_decode_audio4(d_codec_ctx, d_frame, &got_frame, &d_packet);   
+
+    // handle error
+    if(rc<0){
+        printf("error decoding file\n");
         d_ready = false;
         return;
-    }
- 
-    //d_packet->data = audio_buf;
-    //d_packet->size =   
+        }
+    //printf("avcodec_decode_audio4 -> %d (got frame = %d)\n", rc, got_frame);
     
-    // decode the data frame and check return code
-    //int audio_size = avcodec_decode_audio2(d_codec_ctx, (int16_t*)audio_buf, &data_size, d_packet.data, d_packet.size);   
-    int got_frame_ptr;
-    int audio_size = avcodec_decode_audio4(d_codec_ctx, d_frame, &got_frame_ptr, &d_packet);   
-    if(audio_size < 0){ 
-        // ignore non-audio / erronious frame
-        return;
-    }
+    // get output size
+    int data_size=0;
+    if(got_frame){
+        data_size = av_samples_get_buffer_size(NULL, 
+                d_codec_ctx->channels,
+                d_frame->nb_samples,
+                d_codec_ctx->sample_fmt, 1);
+        }
 
-    // copy output data into our buffer
-    int16_t* x = (int16_t*) audio_buf;
+    // ship the output samples back out
+    int16_t* x = (int16_t*) d_frame->data[0];
     int samples_out = data_size/sizeof(short);
-
-    std::vector<int16_t> bufwrapper(x, x+samples_out);
     std::copy( x, x+samples_out, back_inserter(r) );
-
     return;
 }
 
