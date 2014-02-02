@@ -22,7 +22,7 @@
 #ifndef INCLUDED_MEDIATOOLS_API_H
 #define INCLUDED_MEDIATOOLS_API_H
 
-#include <gruel/attributes.h>
+#include <gnuradio/attributes.h>
 
 #ifdef gnuradio_mediatools_EXPORTS
 #  define MEDIATOOLS_API __GR_ATTR_EXPORT
