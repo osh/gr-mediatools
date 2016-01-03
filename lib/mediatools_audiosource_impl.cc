@@ -16,10 +16,12 @@ mediatools_audiosource_impl::mediatools_audiosource_impl(){
     d_codec_ctx = NULL;
     d_format_ctx = NULL;
     av_register_all();   
+    d_nfail = 0;
 }
 
 bool mediatools_audiosource_impl::open(std::string filename){
     boost::mutex::scoped_lock lock(avcodec_guard);
+    d_nfail = 0;
 
     // close & free old contexts
     if(d_frame != NULL){ av_free(d_frame); d_frame=NULL; }
@@ -90,9 +92,10 @@ void mediatools_audiosource_impl::readData(std::vector<int16_t> &r){
     // handle error
     if(rc<0){
         printf("error decoding file\n");
-        d_ready = false;
+        if(nfail++ > 4) d_ready = false;
         return;
         }
+    nfail = 0;
     //printf("avcodec_decode_audio4 -> %d (got frame = %d)\n", rc, got_frame);
     
     // get output size

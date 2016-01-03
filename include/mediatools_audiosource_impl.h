@@ -34,4 +34,5 @@ class mediatools_audiosource_impl {
         AVPacket d_packet;
 
         std::map<std::string, std::string> d_meta;
+        int d_nfail;
 };
