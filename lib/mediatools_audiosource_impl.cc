@@ -92,10 +92,10 @@ void mediatools_audiosource_impl::readData(std::vector<int16_t> &r){
     // handle error
     if(rc<0){
         printf("error decoding file\n");
-        if(nfail++ > 4) d_ready = false;
+        if(d_nfail++ > 4) d_ready = false;
         return;
         }
-    nfail = 0;
+    d_nfail = 0;
     //printf("avcodec_decode_audio4 -> %d (got frame = %d)\n", rc, got_frame);
     
     // get output size
