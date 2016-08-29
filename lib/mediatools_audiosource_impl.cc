@@ -76,6 +76,11 @@ bool mediatools_audiosource_impl::open(std::string filename){
      
 }
 
+void mediatools_audiosource_impl::close() {
+    // Also frees the context
+    avformat_close_input(&d_format_ctx);
+}
+
 void mediatools_audiosource_impl::readData(std::vector<int16_t> &r){
     // set up packet
     av_init_packet(&d_packet);

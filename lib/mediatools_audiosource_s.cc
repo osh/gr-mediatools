@@ -50,6 +50,7 @@ mediatools_audiosource_s::mediatools_audiosource_s (std::vector<std::string> arg
 
 mediatools_audiosource_s::~mediatools_audiosource_s ()
 {
+    d_impl->close();
 }
 
 #define EXIT_ON_LIST_END    false
@@ -81,13 +82,13 @@ mediatools_audiosource_s::work (int noutput_items,
                     return noutput_items;
                 }
             }
-        d_impl->open(d_list[0]);
-        d_list.erase(d_list.begin(), d_list.begin()+1);
-    }
+            d_impl->open(d_list[0]);
+            d_list.erase(d_list.begin(), d_list.begin()+1);
+        }
 
-    // decode more data
-    d_impl->readData(d_data);
-  }
+        // decode more data
+        d_impl->readData(d_data);
+    }
 
   // generate stream tags with media metadata
   typedef std::map<std::string,std::string>::value_type metaitemtype;
@@ -107,7 +108,8 @@ mediatools_audiosource_s::work (int noutput_items,
     message_port_pub(pmt::mp("change"), msg);
     }
 
-  // copy data to our output buffer
+
+    // copy data to our output buffer
   memcpy(out, &d_data[0], noutput_items*sizeof(int16_t));
   d_data.erase(d_data.begin(), d_data.begin()+noutput_items);
   return noutput_items;
